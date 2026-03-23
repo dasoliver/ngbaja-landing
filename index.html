@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NG Baja â Industrial Intelligence Â· Baja California</title>
+<meta name="description" content="Industrial real estate intelligence, cross-border advisory, and property management across the Baja California corridor.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;overflow-x:hidden;overflow-y:auto}
+canvas#globe{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+
+/* Overlay UI */
+.overlay{position:relative;z-index:10;pointer-events:none}
+.overlay *{pointer-events:auto}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 32px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(12px);background:rgba(0,0,0,0.3)}
+.logo{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+.logo span{background:linear-gradient(135deg,#22c55e,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:rgba(255,255,255,0.6);font-size:13px;font-weight:500;text-decoration:none;transition:color 0.3s}
+.nav-links a:hover{color:#22c55e}
+.nav-cta{padding:8px 20px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.3s}
+.nav-cta:hover{background:rgba(34,197,94,0.3)}
+
+/* Hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:24px;font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:32px;backdrop-filter:blur(8px)}
+.hero-badge .pulse{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0.4)}50%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+.hero h1{font-size:clamp(36px,8vw,80px);font-weight:800;line-height:1;letter-spacing:-3px;margin-bottom:20px}
+.hero h1 .glow{background:linear-gradient(135deg,#22c55e 0%,#06b6d4 40%,#a78bfa 70%,#ec4899 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 30px rgba(34,197,94,0.3))}
+.hero p{font-size:clamp(15px,2vw,18px);color:rgba(255,255,255,0.45);max-width:540px;line-height:1.6;margin:0 auto 40px}
+.hero-cta{display:inline-flex;gap:12px}
+.btn-primary{padding:14px 32px;background:linear-gradient(135deg,#22c55e,#06b6d4);color:#000;font-weight:700;font-size:14px;border:none;border-radius:12px;cursor:pointer;transition:all 0.3s;text-decoration:none}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(34,197,94,0.3)}
+.btn-secondary{padding:14px 32px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;font-weight:600;font-size:14px;border-radius:12px;cursor:pointer;transition:all 0.3s;text-decoration:none}
+.btn-secondary:hover{background:rgba(255,255,255,0.1)}
+
+/* Scroll indicator */
+.scroll-hint{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;text-transform:uppercase;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* Stats */
+.stats-section{padding:80px 24px;background:rgba(0,0,0,0.6);backdrop-filter:blur(20px)}
+.stats-inner{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat .num{font-size:clamp(32px,5vw,48px);font-weight:800;background:linear-gradient(135deg,#22c55e,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat .lbl{font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+
+/* Properties */
+.properties{padding:100px 24px;background:rgba(0,0,0,0.7);backdrop-filter:blur(20px)}
+.properties-inner{max-width:1100px;margin:0 auto}
+.section-label{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#22c55e;margin-bottom:12px}
+.section-title{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-1.5px;margin-bottom:48px;line-height:1.1}
+.prop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+.prop-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:32px;transition:all 0.4s;position:relative;overflow:hidden}
+.prop-card:hover{border-color:rgba(34,197,94,0.3);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.prop-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#22c55e,transparent);opacity:0;transition:opacity 0.4s}
+.prop-card:hover::before{opacity:1}
+.prop-card h3{font-size:20px;font-weight:700;margin-bottom:4px}
+.prop-card .type{font-size:13px;color:#06b6d4;font-weight:600;margin-bottom:16px}
+.prop-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pm{background:rgba(255,255,255,0.03);border-radius:10px;padding:12px}
+.pm .val{font-size:20px;font-weight:700;color:#22c55e}
+.pm .lbl{font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+
+/* Entities */
+.entities{padding:100px 24px;background:rgba(0,0,0,0.6);backdrop-filter:blur(20px)}
+.entities-inner{max-width:1100px;margin:0 auto}
+.ent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.ent-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:24px;text-align:center;transition:all 0.3s}
+.ent-card:hover{border-color:rgba(34,197,94,0.3);transform:translateY(-2px)}
+.ent-card .ei{font-size:32px;margin-bottom:10px}
+.ent-card h4{font-size:15px;font-weight:700;margin-bottom:2px}
+.ent-card .domain{font-size:12px;color:#06b6d4;font-weight:600;margin-bottom:6px}
+.ent-card p{font-size:11px;color:rgba(255,255,255,0.35);line-height:1.5}
+
+/* Contact */
+.contact{padding:100px 24px;background:rgba(0,0,0,0.8);backdrop-filter:blur(20px);text-align:center}
+.contact-inner{max-width:600px;margin:0 auto}
+.contact h2{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-1px;margin-bottom:16px}
+.contact p{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:32px;line-height:1.6}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ccard{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:20px;transition:all 0.3s}
+.ccard:hover{border-color:rgba(34,197,94,0.3)}
+.ccard .ci{font-size:24px;margin-bottom:6px}
+.ccard h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.ccard p{font-size:12px;color:rgba(255,255,255,0.35);margin:0}
+
+/* Footer */
+footer{padding:40px 24px;border-top:1px solid rgba(255,255,255,0.05);text-align:center;font-size:11px;color:rgba(255,255,255,0.2);background:rgba(0,0,0,0.9)}
+footer .domains{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}
+footer .domains a{color:rgba(255,255,255,0.25);padding:4px 10px;border:1px solid rgba(255,255,255,0.05);border-radius:6px;text-decoration:none;font-size:11px;transition:all 0.2s}
+footer .domains a:hover{color:#22c55e;border-color:rgba(34,197,94,0.3)}
+
+@media(max-width:768px){
+  .stats-inner{grid-template-columns:repeat(2,1fr)}
+  .nav-links{display:none}
+  .contact-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<canvas id="globe"></canvas>
+
+<div class="overlay">
+  <nav>
+    <div class="logo"><span>NG</span> Baja</div>
+    <div class="nav-links">
+      <a href="#properties">Portfolio</a>
+      <a href="#entities">Ecosystem</a>
+      <a href="#contact">Contact</a>
+      <a href="#contact" class="nav-cta">Get Intel â</a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-badge"><span class="pulse"></span> Baja California Industrial Corridor</div>
+    <h1><span class="glow">Borderless<br>Intelligence.</span></h1>
+    <p>Real-time industrial real estate analytics, cross-border deal flow, and AI-powered market intelligence across the TijuanaâEnsenadaâRosarito corridor.</p>
+    <div class="hero-cta">
+      <a href="#properties" class="btn-primary">Explore Portfolio â</a>
+      <a href="#contact" class="btn-secondary">Contact Us</a>
+    </div>
+    <div class="scroll-hint">
+      <span>Scroll to explore</span>
+      <span style="font-size:16px">â</span>
+    </div>
+  </div>
+
+  <div class="stats-section">
+    <div class="stats-inner">
+      <div class="stat"><div class="num">$46.5M</div><div class="lbl">Portfolio Value</div></div>
+      <div class="stat"><div class="num">132K</div><div class="lbl">mÂ² Managed</div></div>
+      <div class="stat"><div class="num">7</div><div class="lbl">Affiliated Entities</div></div>
+      <div class="stat"><div class="num">20+</div><div class="lbl">Years Experience</div></div>
+    </div>
+  </div>
+
+  <div class="properties" id="properties">
+    <div class="properties-inner">
+      <div class="section-label">Portfolio</div>
+      <div class="section-title">Featured Industrial Assets</div>
+      <div class="prop-grid">
+        <div class="prop-card">
+          <h3>Nave DAX-CECSO</h3>
+          <div class="type">Industrial Class A Â· Tijuana</div>
+          <div class="prop-metrics">
+            <div class="pm"><div class="val">$18.5M</div><div class="lbl">Estimated Value</div></div>
+            <div class="pm"><div class="val">73,627</div><div class="lbl">mÂ² Land Area</div></div>
+            <div class="pm"><div class="val">Class A</div><div class="lbl">Classification</div></div>
+            <div class="pm"><div class="val">Active</div><div class="lbl">Status</div></div>
+          </div>
+        </div>
+        <div class="prop-card">
+          <h3>Waldo's Lago</h3>
+          <div class="type">Logistics Center A+ Â· Multitenant</div>
+          <div class="prop-metrics">
+            <div class="pm"><div class="val">$28M</div><div class="lbl">Estimated Value</div></div>
+            <div class="pm"><div class="val">25,558</div><div class="lbl">mÂ² GLA</div></div>
+            <div class="pm"><div class="val">46+2</div><div class="lbl">Docks & Ramps</div></div>
+            <div class="pm"><div class="val">1,325 kVA</div><div class="lbl">Power Capacity</div></div>
+          </div>
+        </div>
+        <div class="prop-card">
+          <h3>BetBe / J&Y Foam</h3>
+          <div class="type">Active Deal Â· 97,000 SF Renewal</div>
+          <div class="prop-metrics">
+            <div class="pm"><div class="val">97K SF</div><div class="lbl">Lease Area</div></div>
+            <div class="pm"><div class="val">Active</div><div class="lbl">Exclusive Rep</div></div>
+            <div class="pm"><div class="val">Ares</div><div class="lbl">Landlord</div></div>
+            <div class="pm"><div class="val">High</div><div class="lbl">Probability</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entities" id="entities">
+    <div class="entities-inner">
+      <div class="section-label">Ecosystem</div>
+      <div class="section-title">Affiliated Network</div>
+      <div class="ent-grid">
+        <div class="ent-card"><div class="ei">ð­</div><h4>NorthPoint Group</h4><div class="domain">npg.mx</div><p>Industrial brokerage & tenant representation</p></div>
+        <div class="ent-card"><div class="ei">ð</div><h4>Vlads Capital</h4><div class="domain">vladscapital.com</div><p>Private investment & asset management</p></div>
+        <div class="ent-card"><div class="ei">ð</div><h4>USAMEX</h4><div class="domain">usamex.pro</div><p>Cross-border US-MX structuring</p></div>
+        <div class="ent-card"><div class="ei">ð</div><h4>Nexus Baja</h4><div class="domain">nexusbaja.com</div><p>Capital markets & deal sourcing</p></div>
+        <div class="ent-card"><div class="ei">ð²</div><h4>Bosque Tijuana</h4><div class="domain">bosquetijuana.com</div><p>Mixed-use development</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact" id="contact">
+    <div class="contact-inner">
+      <div class="section-label">Connect</div>
+      <h2>Let's Build Something</h2>
+      <p>Whether you're expanding manufacturing operations, seeking industrial assets, or exploring the Baja California market â we have the intelligence.</p>
+      <div class="contact-grid">
+        <div class="ccard"><div class="ci">ð§</div><h4>Email</h4><p>oliver@npg.mx</p></div>
+        <div class="ccard"><div class="ci">ð8/div><h4>Location</h4><p>Tijuana Â· San Diego</p></div>
+        <div class="ccard"><div class="ci">ð¢</div><h4>Industrial</h4><p>ruben@npg.mx</p></div>
+        <div class="ccard"><div class="ci">ð</div><h4>Web</h4><p>npg.mx</p></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="domains">
+      <a href="https://npg.mx">npg.mx</a>
+      <a href="https://vladscapital.com">vladscapital.com</a>
+      <a href="https://usamex.pro">usamex.pro</a>
+      <a href="https://nexusbaja.com">nexusbaja.com</a>
+      <a href="https://bosquetijuana.com">bosquetijuana.com</a>
+    </div>
+    <div>NPG Group â Affiliated Network Â· Not a holding company Â· Each entity operates independently</div>
+    <div style="margin-top:4px">Â© 2026 Oliver Rodriguez Velasco Â· Stanford GSB Â· All rights reserved</div>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============ THREE.JS 3D GLOBE + SOUL PARTICLES ============
+const canvas = document.getElementById('globe');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 3.2);
+
+// ---- STARS ----
+const starsGeo = new THREE.BufferGeometry();
+const starsCount = 3000;
+const starsPos = new Float32Array(starsCount * 3);
+for(let i=0; i<starsCount*3; i++) starsPos[i] = (Math.random()-0.5)*20;
+starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+const starsMat = new THREE.PointsMaterial({color:0xffffff, size:0.008, transparent:true, opacity:0.6});
+scene.add(new THREE.Points(starsGeo, starsMat));
+
+// ---- GLOBE WIREFRAME ----
+const globeGeo = new THREE.SphereGeometry(1, 48, 48);
+const globeMat = new THREE.MeshBasicMaterial({color:0x22c55e, wireframe:true, transparent:true, opacity:0.06});
+const globe = new THREE.Mesh(globeGeo, globeMat);
+scene.add(globe);
+
+// ---- GLOBE DOTS ----
+const dotCount = 2000;
+const dotGeo = new THREE.BufferGeometry();
+const dotPos = new Float32Array(dotCount * 3);
+const dotColors = new Float32Array(dotCount * 3);
+for(let i=0; i<dotCount; i++){
+  const phi = Math.acos(-1 + (2*i)/dotCount);
+  const theta = Math.sqrt(dotCount*Math.PI)*phi;
+  const r = 1.005;
+  dotPos[i*3] = r*Math.sin(phi)*Math.cos(theta);
+  dotPos[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+  dotPos[i*3+2] = r*Math.cos(phi);
+  // Color gradient: green near equator, purple near poles
+  const lat = Math.abs(Math.cos(phi));
+  dotColors[i*3] = 0.13 + lat*0.5;
+  dotColors[i*3+1] = 0.77 - lat*0.3;
+  dotColors[i*3+2] = 0.37 + lat*0.6;
+}
+dotGeo.setAttribute('position', new THREE.BufferAttribute(dotPos, 3));
+dotGeo.setAttribute('color', new THREE.BufferAttribute(dotColors, 3));
+const dotMat = new THREE.PointsMaterial({size:0.012, vertexColors:true, transparent:true, opacity:0.5});
+const dots = new THREE.Points(dotGeo, dotMat);
+scene.add(dots);
+
+// ---- LOCATIONS (lat/lng to 3D) ----
+function latLngTo3D(lat, lng, r){
+  const phi = (90-lat)*(Math.PI/180);
+  const theta = (lng+180)*(Math.PI/180);
+  return new THREE.Vector3(
+    -r*Math.sin(phi)*Math.cos(theta),
+    r*Math.cos(phi),
+    r*Math.sin(phi)*Math.sin(theta)
+  );
+}
+
+const locations = [
+  {name:'Tijuana', lat:32.5149, lng:-117.0382, color:0x22c55e, size:0.025},
+  {name:'Ensenada', lat:31.8667, lng:-116.5964, color:0x06b6d4, size:0.018},
+  {name:'Rosarito', lat:32.3633, lng:-117.0542, color:0xa78bfa, size:0.015},
+  {name:'San Diego', lat:32.7157, lng:-117.1611, color:0xf59e0b, size:0.02},
+  {name:'Seoul', lat:37.5665, lng:126.978, color:0xec4899, size:0.015},
+  {name:'NYC', lat:40.7128, lng:-74.006, color:0x3b82f6, size:0.015},
+  {name:'CDMX', lat:19.4326, lng:-99.1332, color:0xef4444, size:0.015},
+  {name:'Mexicali', lat:32.6245, lng:-115.4523, color:0x06b6d4, size:0.012},
+  {name:'Tecate', lat:32.5722, lng:-116.6263, color:0xa78bfa, size:0.012},
+  {name:'Stanford', lat:37.4275, lng:-122.1697, color:0x22c55e, size:0.012},
+];
+
+// Location markers
+const markerGroup = new THREE.Group();
+locations.forEach(loc => {
+  const pos = latLngTo3D(loc.lat, loc.lng, 1.01);
+  // Glow sphere
+  const geo = new THREE.SphereGeometry(loc.size, 16, 16);
+  const mat = new THREE.MeshBasicMaterial({color:loc.color, transparent:true, opacity:0.8});
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(pos);
+  markerGroup.add(mesh);
+  // Halo ring
+  const ringGeo = new THREE.RingGeometry(loc.size*1.2, loc.size*1.8, 32);
+  const ringMat = new THREE.MeshBasicMaterial({color:loc.color, transparent:true, opacity:0.2, side:THREE.DoubleSide});
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.copy(pos);
+  ring.lookAt(new THREE.Vector3(0,0,0));
+  markerGroup.add(ring);
+});
+scene.add(markerGroup);
+
+// ---- SOUL-STYLE LASER LINES (arcs) ----
+const lineGroup = new THREE.Group();
+const tjPos = latLngTo3D(32.5149, -117.0382, 1.01);
+const connections = [
+  {to:locations[1], color:0x06b6d4}, // Ensenada
+  {to:locations[2], color:0xa78bfa}, // Rosarito
+  {to:locations[3], color:0xf59e0b}, // San Diego
+  {to:locations[4], color:0xec4899}, // Seoul
+  {to:locations[5], color:0x3b82f6}, // NYC
+  {to:locations[6], color:0xef4444}, // CDMX
+  {to:locations[9], color:0x22c55e}, // Stanford
+];
+
+connections.forEach(conn => {
+  const toPos = latLngTo3D(conn.to.lat, conn.to.lng, 1.01);
+  const points = [];
+  const segments = 64;
+  for(let i=0; i<=segments; i++){
+    const t = i/segments;
+    const point = new THREE.Vector3().lerpVectors(tjPos, toPos, t);
+    // Arc height based on distance
+    const dist = tjPos.distanceTo(toPos);
+    const height = 1 + Math.sin(t*Math.PI)*dist*0.4;
+    point.normalize().multiplyScalar(height);
+    points.push(point);
+  }
+  const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+  const lineMat = new THREE.LineBasicMaterial({color:conn.color, transparent:true, opacity:0.35, linewidth:1});
+  lineGroup.add(new THREE.Line(lineGeo, lineMat));
+});
+scene.add(lineGroup);
+
+// ---- FLOWING PARTICLES ON LINES (Soul effect) ----
+const particleCount = 200;
+const flowGeo = new THREE.BufferGeometry();
+const flowPos = new Float32Array(particleCount*3);
+const flowColors2 = new Float32Array(particleCount*3);
+const flowData = [];
+
+for(let i=0; i<particleCount; i++){
+  const connIdx = Math.floor(Math.random()*connections.length);
+  const conn = connections[connIdx];
+  const toPos2 = latLngTo3D(conn.to.lat, conn.to.lng, 1.01);
+  flowData.push({
+    from: tjPos.clone(),
+    to: toPos2.clone(),
+    t: Math.random(),
+    speed: 0.002 + Math.random()*0.004,
+    dist: tjPos.distanceTo(toPos2),
+    color: new THREE.Color(conn.color)
+  });
+  flowColors2[i*3] = flowData[i].color.r;
+  flowColors2[i*3+1] = flowData[i].color.g;
+  flowColors2[i*3+2] = flowData[i].color.b;
+}
+flowGeo.setAttribute('position', new THREE.BufferAttribute(flowPos, 3));
+flowGeo.setAttribute('color', new THREE.BufferAttribute(flowColors2, 3));
+const flowMat = new THREE.PointsMaterial({size:0.02, vertexColors:true, transparent:true, opacity:0.8, blending:THREE.AdditiveBlending});
+const flowParticles = new THREE.Points(flowGeo, flowMat);
+scene.add(flowParticles);
+
+// ---- ATMOSPHERE GLOW ----
+const atmosGeo = new THREE.SphereGeometry(1.12, 64, 64);
+const atmosMat = new THREE.ShaderMaterial({
+  vertexShader:`
+    varying vec3 vNormal;
+    void main(){
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  fragmentShader:`
+    varying vec3 vNormal;
+    void main(){
+      float intensity = pow(0.6 - dot(vNormal, vec3(0,0,1.0)), 2.0);
+      gl_FragColor = vec4(0.13, 0.77, 0.37, 1.0) * intensity * 0.4;
+    }
+  `,
+  blending: THREE.AdditiveBlending,
+  side: THREE.BackSide,
+  transparent: true
+});
+scene.add(new THREE.Mesh(atmosGeo, atmosMat));
+
+// ---- ANIMATION ----
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = (e.clientX/window.innerWidth - 0.5)*0.3;
+  mouseY = (e.clientY/window.innerHeight - 0.5)*0.3;
+});
+
+let scrollY = 0;
+window.addEventListener('scroll', () => { scrollY = window.scrollY; });
+
+function animate(){
+  requestAnimationFrame(animate);
+  const time = Date.now()*0.001;
+
+  // Rotate globe slowly
+  globe.rotation.y += 0.001;
+  dots.rotation.y += 0.001;
+  markerGroup.rotation.y += 0.001;
+  lineGroup.rotation.y += 0.001;
+  flowParticles.rotation.y += 0.001;
+
+  // Mouse interaction
+  camera.position.x += (mouseX - camera.position.x)*0.02;
+  camera.position.y += (-mouseY - camera.position.y)*0.02;
+  camera.lookAt(0,0,0);
+
+  // Zoom out on scroll
+  const targetZ = 3.2 + scrollY*0.001;
+  camera.position.z += (targetZ - camera.position.z)*0.05;
+
+  // Animate flowing particles
+  const positions = flowGeo.attributes.position.array;
+  for(let i=0; i<particleCount; i++){
+    const d = flowData[i];
+    d.t += d.speed;
+    if(d.t > 1) d.t = 0;
+    const point = new THREE.Vector3().lerpVectors(d.from, d.to, d.t);
+    const height = 1 + Math.sin(d.t*Math.PI)*d.dist*0.4;
+    point.normalize().multiplyScalar(height);
+    // Apply same rotation as globe
+    const angle = globe.rotation.y;
+    const x = point.x*Math.cos(angle) - point.z*Math.sin(angle);
+    const z = point.x*Math.sin(angle) + point.z*Math.cos(angle);
+    positions[i*3] = x;
+    positions[i*3+1] = point.y;
+    positions[i*3+2] = z;
+  }
+  flowGeo.attributes.position.needsUpdate = true;
+
+  // Pulse markers
+  markerGroup.children.forEach((child, idx) => {
+    if(child.geometry.type === 'RingGeometry'){
+      child.scale.setScalar(1 + Math.sin(time*2 + idx)*0.2);
+      child.material.opacity = 0.15 + Math.sin(time*2 + idx)*0.1;
+    }
+  });
+
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
